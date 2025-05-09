@@ -5,12 +5,14 @@ from selenium.webdriver.common.by import By
 
 # === CONFIGURACIÓN DEL USUARIO ===
 NOMBRE_CONTACTO = "Vóleibol RedCUPS 🏐"  # Nombre exacto del grupo
-
+# ❣️ Amor❣️
 # Lista de formularios a enviar con distintos datos
 FORMULARIOS = [
     {"nombre": "Oscar Soto", "carne": "2020092336", "carrera": "Ingeniería en Computadores"},
-    {"nombre": "Esteban Sixtin", "carne": "2020219753", "carrera": "Mantenimiento Industrial"},
+    {"nombre": "Snyder León", "carne": "2025101974", "carrera": "Computacion"}
 ]
+
+#   {"nombre": "Esteban Rojas", "carne": "2020219753", "carrera": "Mantenimiento Industrial"}
 
 # Expresión regular para detectar formularios
 FORM_REGEX = r'https://(?:docs\.google\.com/forms/|forms\.gle)/[^\s]+'
@@ -19,6 +21,8 @@ FORM_REGEX = r'https://(?:docs\.google\.com/forms/|forms\.gle)/[^\s]+'
 driver = webdriver.Chrome()
 driver.get("https://web.whatsapp.com/")
 print("🔒 Escanea el código QR para iniciar sesión...")
+
+print(NOMBRE_CONTACTO)
 
 input("✅ Presiona Enter cuando hayas iniciado sesión y WhatsApp Web esté completamente cargado...")
 
@@ -56,7 +60,6 @@ def seleccionar_chat(nombre_contacto):
 
 def esperar_formulario(timeout=300):
     print("⏳ Esperando mensaje con Google Form...")
-    inicio = time.time()
     vistos = set()
 
     while True:
@@ -88,36 +91,56 @@ def rellenar_formulario(nombre, carne, carrera):
     print(f"📝 Rellenando formulario para {nombre}...")
 
     try:
-        time.sleep(0.5)
-        campos = driver.find_elements(By.XPATH, '//input[@type="text"]')
+
+        campos = None
+        while campos is None or len(campos) < 3:
+            try:
+                campos = driver.find_elements(By.XPATH, '//input[@type="text"]')
+            except Exception as e:
+                print("❌ Formulario no ha cargado.")
+                campos = None  # Reinicia si hubo error
+
+        print("✅ Formulario Abierto.")
         if len(campos) < 3:
             print("❌ No se encontraron suficientes campos.")
             return
 
-        campos[0].send_keys(nombre)
-        campos[1].send_keys(carne)
-        campos[2].send_keys(carrera)
-        print("✅ Campos completados.")
-
-        boton_enviar = driver.find_element(By.XPATH, '//span[contains(text(), "Enviar") or contains(text(), "Submit")]/ancestor::div[@role="button"]')
-        boton_enviar.click()
-        print("📤 Formulario enviado.")
-        time.sleep(0.3)
+        error_triggered = True
+        while error_triggered:
+            try:
+                campos[0].send_keys(nombre)
+                campos[1].send_keys(carne)
+                campos[2].send_keys(carrera)
+                error_triggered = False 
+                print("✅ Campos completados.")
+            except Exception as e:
+                print("❌ error llenando campos.")
+        
+        error_triggered = True
+        while error_triggered:
+            try:
+                boton_enviar = driver.find_element(By.XPATH, '//span[contains(text(), "Enviar") or contains(text(), "Submit")]/ancestor::div[@role="button"]')
+                boton_enviar.click()
+                error_triggered = False 
+                print("📤 Formulario enviado.")
+            except Exception as e:
+                print("❌ Error al enviar formulario.")
 
     except Exception as e:
         print(f"❌ Error al rellenar o enviar: {e}")
 
 def click_enviar_otro():
-    try:
-        # Buscar botón en español o inglés
-        boton_otro = driver.find_element(By.XPATH, '//a[contains(text(), "Enviar otra respuesta") or contains(text(), "Submit another response")]')
-        boton_otro.click()
-        print("🔁 Preparado para siguiente respuesta.")
-        return True
-    except Exception as e:
-        print(f"❌ No se encontró botón 'Enviar otra respuesta': {e}")
-        return False
-
+    error_triggered = True
+    while error_triggered:
+        try:
+            # Buscar botón en español o inglés
+            boton_otro = driver.find_element(By.XPATH, '//a[contains(text(), "Enviar otra respuesta") or contains(text(), "Submit another response")]')
+            boton_otro.click()
+            print("🔁 Preparado para siguiente respuesta.")
+            error_triggered = False
+        except Exception as e:
+            print(f"❌ No se encontró botón 'Enviar otra respuesta': {e}")
+    return True
 # === Ejecución principal ===
 
 if seleccionar_chat(NOMBRE_CONTACTO):
@@ -129,7 +152,10 @@ if seleccionar_chat(NOMBRE_CONTACTO):
         driver.switch_to.window(driver.window_handles[-1])
 
         for i, datos in enumerate(FORMULARIOS):
+            inicio = time.time()
             rellenar_formulario(datos["nombre"], datos["carne"], datos["carrera"])
+            fin = time.time()
+            print(f"Tiempo de ejecución: {fin - inicio:.2f} segundos")
             if i < len(FORMULARIOS) - 1:
                 if not click_enviar_otro():
                     break
