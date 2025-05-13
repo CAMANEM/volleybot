@@ -4,15 +4,16 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 
 # === CONFIGURACIÓN DEL USUARIO ===
-NOMBRE_CONTACTO = "Vóleibol RedCUPS 🏐"  # Nombre exacto del grupo
+NOMBRE_CONTACTO = "Vóleibol RedCUPS"  # Nombre exacto del grupo
 # ❣️ Amor❣️
 # Lista de formularios a enviar con distintos datos
 FORMULARIOS = [
+    {"nombre": "Nyller Irigoyen Oporta", "carne": "2018026331", "carrera": "MI"},
     {"nombre": "Oscar Soto", "carne": "2020092336", "carrera": "Ingeniería en Computadores"},
-    {"nombre": "Snyder León", "carne": "2025101974", "carrera": "Computacion"}
+    {"nombre": "Esteban Rojas", "carne": "2020219753", "carrera": "Mantenimiento Industrial"}
 ]
 
-#   {"nombre": "Esteban Rojas", "carne": "2020219753", "carrera": "Mantenimiento Industrial"}
+#   {"nombre": "Snyder León", "carne": "2025101974", "carrera": "Computacion"}
 
 # Expresión regular para detectar formularios
 FORM_REGEX = r'https://(?:docs\.google\.com/forms/|forms\.gle)/[^\s]+'
@@ -30,17 +31,6 @@ input("✅ Presiona Enter cuando hayas iniciado sesión y WhatsApp Web esté com
 
 def seleccionar_chat(nombre_contacto):
     try:
-        for _ in range(5):  # Scrolls para buscar chat
-            try:
-                contacto = driver.find_element(By.XPATH, f'//span[@title="{nombre_contacto}"]')
-                contacto.click()
-                print(f"📨 Chat con '{nombre_contacto}' abierto.")
-                return True
-            except:
-                panel_chats = driver.find_element(By.XPATH, '//div[@aria-label="Lista de chats"]')
-                driver.execute_script("arguments[0].scrollTop += 300", panel_chats)
-                time.sleep(0.5)
-
         # Búsqueda si no aparece visible
         buscar = driver.find_element(By.XPATH, '//div[@contenteditable="true"][@data-tab="3"]')
         buscar.click()
@@ -49,7 +39,7 @@ def seleccionar_chat(nombre_contacto):
         buscar.send_keys(nombre_contacto)
         time.sleep(2)
 
-        contacto = driver.find_element(By.XPATH, f'//span[@title="{nombre_contacto}"]')
+        contacto = driver.find_element(By.XPATH, f'//span[contains(@title, "{nombre_contacto.split(" ")[0]}")]')
         contacto.click()
         print(f"📨 Chat con '{nombre_contacto}' abierto desde búsqueda.")
         return True
